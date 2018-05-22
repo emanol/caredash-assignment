@@ -1,13 +1,11 @@
 from flask import Flask, jsonify, request
-from sqlalchemy.orm import joinedload
 from doctor_model import db, app, Doctor, Review
 
 db.create_all()
 
 @app.route('/')
-def hello_world():
-    print('this function for hello world executed')
-    response = { 'text' : 'Hello, World!' }
+def root():
+    response = { 'text' : 'Caredash!' }
     return jsonify(response)
 
 @app.route('/doctors/', methods=['GET', 'POST'])
@@ -22,25 +20,17 @@ def get_all_doctors():
     return str(query)
 
 def post_doctor(request):
-    # input validation
-    data = {}
+    data = request.get_json()
     try:
-        data = request.form['doctor']
+        data = data['doctor']
+        doctor = Doctor(name=data['name'])
+        db.session.add(doctor)
+        db.session.commit()
+        response = {'id': data['id'], 'name': doctor.id}
+        return jsonify(response)
     except KeyError:
         error = {"error": "invalid post, must have doctor field"}
         return jsonify(error)
-
-    # adds doctor to database
-    doctor = Doctor(name=data['name'])
-    db.session.add(doctor)
-    db.session.commit()
-
-    response = {
-        'id': data['id'],
-        'name': doctor.id
-    }
-
-    return jsonify(response)
 
 @app.route('/doctors/<int:id>', methods=['GET', 'DElETE'])
 def get_or_delete_doctor(id):
@@ -50,7 +40,6 @@ def get_or_delete_doctor(id):
         return delete_one_doctor(id)
 
 def get_one_doctor(id):
-    # input validation
     doctor = Doctor.query.get(id)
     if doctor:
         response = {
@@ -87,20 +76,17 @@ def get_all_reviews(id):
     if doctor:
         response['id'] = doctor.id,
         response['name'] = doctor.name,
-        response['reviews'] = {}
+        response['reviews'] = doctor.reviews
     else:
         error = {'invalid_doctor_id': 'doctor could not be found'}
         return jsonify(error)
-
-    reviews = Doctor.query.joinedload('reviews')
-    for review in reviews:
-        response['reviews'][review.id] = review.desription
 
     return jsonify(response)
 
 def post_review(request, doctor_id):
     try:
-        comment = request.form['review']
+        comment = request.get_json()
+        comment = comment['review']
         error = {}
         if 'description' not in comment:
             error['no_description'] = 'No description present'
@@ -148,3 +134,6 @@ def delete_one_review(doctor, review):
     db.session.commit()
     response = { 'success' : 'Review was succesffuly deleted' }
     return jsonify(response)
+
+if __name__ == '__main__':
+    app.run()
