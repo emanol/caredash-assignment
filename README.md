@@ -14,9 +14,12 @@ python3 src/main.py
 ## Design
 Scalability: this app uses flask's builtin testing server, which is not designed for a production workload. In order to scale up this app, one should deploy to a proper web server such as Apache or Nginx.
 
-Error Handling: The server will respond with an error message in the event that a doctor/review doesn't exist, or in the event that the JSON field attached to a POST request is not properly formatted. When a post request successfully completes, a copy of the post request as well as a newly generated id field are returned.
+Error Handling: The server will respond with an error message in the event that a doctor/review doesn't exist, or in the event that the JSON field attached to a POST request is not properly formatted. The fields are case sensitive (e.g. 'doctor' is correct; 'Doctor' is incorrect'). When a post request successfully completes, a copy of the post request as well as a newly generated id field are returned.
 
 Data Model: I replicated the data model as described in the assignment. The name field is not unique for doctors since there are doctors that share the same name.
+
+## Testing
+- GET/POST tested using postman chrome extension.
 
 ## Libraries used
 - mysqlclient

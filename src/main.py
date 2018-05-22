@@ -8,7 +8,7 @@ def root():
     response = { 'text' : 'Caredash!' }
     return jsonify(response)
 
-@app.route('/doctors/', methods=['GET', 'POST'])
+@app.route('/doctors', methods=['GET', 'POST'])
 def get_or_post_doctor():
     if request.method == 'GET':
         return get_all_doctors()
@@ -26,7 +26,7 @@ def post_doctor(request):
         doctor = Doctor(name=data['name'])
         db.session.add(doctor)
         db.session.commit()
-        response = {'id': data['id'], 'name': doctor.id}
+        response = {'id': doctor.id, 'name': doctor.name}
         return jsonify(response)
     except KeyError:
         error = {"error": "invalid post, must have doctor field"}
@@ -97,11 +97,11 @@ def post_review(request, doctor_id):
         if error:
             return jsonify(error)
 
-        review = Review(doctor_id=comment['doctor_id'], description=comment['description'])
+        review = Review(doctor_id=doctor_id, description=comment['description'])
         db.session.add(review)
         db.session.commit()
 
-        response = {**review, 'id' : review.id}
+        response = {**review}
         return jsonify(response)
 
     except KeyError:
